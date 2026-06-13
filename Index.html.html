@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Benchtober">
+<meta name="theme-color" content="#1a1a1a">
+<title>Benchtober</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111;color:#f0f0f0;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+.app{max-width:680px;margin:0 auto;padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
+.header{background:#1a1a1a;padding:14px 16px;border-radius:14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border:1px solid #2a2a2a}
+.header-title{color:#a855f7;font-size:22px;font-weight:700;letter-spacing:1px}
+.header-sub{color:#666;font-size:12px;margin-top:2px}
+.progress-bar{height:5px;background:#2a2a2a;border-radius:4px;overflow:hidden;margin-top:8px;width:160px}
+.progress-fill{height:100%;background:#a855f7;border-radius:4px;transition:width .4s}
+.unit-toggle{display:flex;align-items:center;gap:5px;font-size:12px;color:#666;margin-bottom:5px;justify-content:flex-end}
+.unit-toggle button{padding:3px 10px;border-radius:12px;border:1px solid #333;background:transparent;font-size:12px;cursor:pointer;color:#888}
+.unit-toggle button.active{background:#a855f7;border-color:#a855f7;color:#fff}
+.done-count{font-size:12px;color:#666;text-align:right}
+.phase-tabs{display:flex;gap:6px;margin-bottom:12px}
+.phase-tab{flex:1;padding:9px;border-radius:10px;border:1px solid #2a2a2a;background:#1a1a1a;font-size:13px;font-weight:600;cursor:pointer;color:#888;text-align:center}
+.phase-tab.active{background:#a855f7;border-color:#a855f7;color:#fff}
+.maxes-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:14px;margin-bottom:12px}
+.maxes-title{font-size:13px;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.maxes-sub{font-size:12px;color:#888;line-height:1.5;margin-bottom:12px}
+.max-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.max-label{font-size:13px;font-weight:600;color:#e0e0e0;min-width:120px}
+.max-input{width:80px;height:34px;font-size:15px;padding:0 8px;border-radius:8px;border:1px solid #333;background:#222;color:#f0f0f0;text-align:center;-webkit-appearance:none}
+.max-input:focus{outline:none;border-color:#a855f7}
+.max-unit{font-size:12px;color:#666}
+.calc-box{background:#222;border-radius:10px;padding:10px 12px;margin-top:6px;border:1px solid #2a2a2a}
+.calc-title{font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.calc-row{display:flex;align-items:center;gap:6px;margin-bottom:7px;flex-wrap:wrap}
+.calc-label{font-size:12px;color:#aaa;min-width:90px}
+.calc-input{width:64px;height:30px;font-size:13px;padding:0 6px;border-radius:7px;border:1px solid #333;background:#1a1a1a;color:#f0f0f0;text-align:center;-webkit-appearance:none}
+.calc-input:focus{outline:none;border-color:#a855f7}
+.calc-x{font-size:12px;color:#666}
+.calc-result{font-size:13px;color:#4ade80;font-weight:600;margin-left:auto;white-space:nowrap}
+.apply-btn{width:100%;margin-top:10px;padding:11px;border-radius:10px;border:none;background:#a855f7;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.apply-btn:active{transform:scale(0.98)}
+.apply-btn.secondary{background:#222;color:#a855f7;border:1px solid #a855f7}
+.applied-flash{font-size:12px;color:#4ade80;text-align:center;margin-top:8px;display:none}
+.applied-flash.show{display:block}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:#1a1a1a;border-radius:10px;padding:10px;text-align:center;border:1px solid #2a2a2a}
+.stat-val{font-size:22px;font-weight:700;color:#a855f7}
+.stat-label{font-size:11px;color:#666;margin-top:2px}
+.week-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.week-btn{padding:5px 12px;border-radius:20px;border:1px solid #2a2a2a;background:#1a1a1a;font-size:12px;cursor:pointer;color:#888}
+.week-btn.active{background:#a855f7;border-color:#a855f7;color:#fff;font-weight:600}
+.days-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:7px;margin-bottom:12px}
+.day-pill{padding:8px 6px;border-radius:10px;border:1px solid #2a2a2a;background:#1a1a1a;cursor:pointer;text-align:center}
+.day-pill:active{transform:scale(0.97)}
+.day-pill.active{border:2px solid #a855f7}
+.day-pill.completed{background:#0d2e1a;border-color:#1a5c32}
+.day-num{font-size:10px;color:#666;margin-bottom:2px}
+.day-name{font-size:11px;font-weight:600;color:#e0e0e0;line-height:1.3}
+.day-badge{font-size:10px;margin-top:3px;padding:1px 6px;border-radius:10px;display:inline-block}
+.badge-strength{background:#1a1535;color:#c4b5fd}
+.badge-rest{background:#0d2e1a;color:#4ade80}
+.badge-pr{background:#2a2000;color:#fbbf24;font-weight:600}
+.badge-test{background:#2a1535;color:#d8b4fe;font-weight:600}
+.detail{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:14px}
+.dh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #2a2a2a}
+.dh-day{font-size:11px;color:#a855f7;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.dh-name{font-size:17px;font-weight:600;color:#f0f0f0;margin-top:2px;line-height:1.3}
+.dh-date{font-size:12px;color:#666;margin-top:2px}
+.done-btn{padding:7px 14px;border-radius:20px;border:1px solid #2a2a2a;background:#222;font-size:12px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;color:#888;flex-shrink:0}
+.done-btn.done{background:#0d2e1a;border-color:#1a5c32;color:#4ade80}
+.sec-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:#a855f7;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.warmup-box{background:#222;border-radius:10px;padding:10px 12px;font-size:13px;color:#ccc;line-height:1.6;border:1px solid #2a2a2a}
+.section{margin-bottom:14px}
+.exercise{padding:10px 0;border-bottom:1px solid #222}
+.exercise:last-child{border-bottom:none}
+.ex-row{display:flex;align-items:flex-start;gap:8px}
+.ex-num{font-size:12px;font-weight:600;color:#a855f7;min-width:18px;padding-top:1px}
+.ex-name{font-size:14px;font-weight:600;color:#f0f0f0;line-height:1.4}
+.ex-detail{font-size:12px;color:#888;margin-top:3px;line-height:1.5}
+.ss-tag{font-size:10px;background:#1a1535;color:#c4b5fd;padding:1px 7px;border-radius:10px;font-weight:600;margin-left:5px;vertical-align:middle}
+.sub-ex{padding:6px 0 0 26px}
+.sub-l{font-size:12px;font-weight:600;color:#9333ea;min-width:18px}
+.wlog{margin-top:8px;background:#222;border-radius:10px;padding:8px 10px;border:1px solid #2a2a2a}
+.wlog-title{font-size:11px;font-weight:600;color:#888;margin-bottom:7px;display:flex;align-items:center;gap:4px}
+.set-rows{display:flex;flex-direction:column;gap:5px}
+.set-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.set-label{font-size:11px;color:#888;min-width:110px}
+.set-pct{font-size:10px;background:#1a1535;color:#c4b5fd;padding:2px 6px;border-radius:8px;white-space:nowrap;min-width:36px;text-align:center;font-weight:600}
+.set-target{font-size:10px;color:#4ade80;white-space:nowrap;font-weight:600}
+.set-input{width:72px;height:32px;font-size:14px;padding:0 6px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:#f0f0f0;text-align:center;-webkit-appearance:none}
+.set-input:focus{outline:none;border-color:#a855f7}
+.set-input.has-target{border-color:#2a5c3a}
+.set-unit{font-size:11px;color:#666}
+.saved-flash{font-size:11px;color:#4ade80;display:none;align-items:center;gap:2px}
+.saved-flash.show{display:flex}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.col-box{background:#222;border-radius:10px;padding:10px 12px;border:1px solid #2a2a2a}
+.col-title{font-size:11px;font-weight:600;color:#f0f0f0;margin-bottom:6px;text-decoration:underline;text-underline-offset:3px}
+.col-line{font-size:12px;color:#888;line-height:1.7}
+.rest-item{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:13px;color:#ccc;line-height:1.5}
+.rest-bullet{color:#a855f7;font-size:16px;line-height:1.3}
+.notes-label{font-size:11px;color:#666;margin-top:12px;margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.notes-area{width:100%;font-size:13px;padding:8px 10px;border-radius:10px;border:1px solid #2a2a2a;background:#222;color:#f0f0f0;resize:vertical;min-height:60px;line-height:1.5}
+.notes-area:focus{outline:none;border-color:#a855f7}
+.pr-note{background:#1a1200;border-left:3px solid #f59e0b;padding:10px 12px;border-radius:0 10px 10px 0;font-size:12px;color:#d97706;line-height:1.6;margin:6px 0}
+.test-note{background:#1f1535;border-left:3px solid #a855f7;padding:10px 12px;border-radius:0 10px 10px 0;font-size:12px;color:#d8b4fe;line-height:1.6;margin:6px 0}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+  <div>
+    <div class="header-title">BENCHTOBER</div>
+    <div class="header-sub">Ramp-Up + 31-Day Bench Program</div>
+  </div>
+  <div style="text-align:right">
+    <div class="unit-toggle">
+      <span>Unit:</span>
+      <button id="btn-lbs" class="active" onclick="setUnit('lbs')">lbs</button>
+      <button id="btn-kg" onclick="setUnit('kg')">kg</button>
+    </div>
+    <div class="done-count" id="done-count">0 / 31 days</div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="phase-tabs">
+  <button class="phase-tab active" id="tab-rampup" onclick="setPhase('rampup')">Ramp-Up (2 wk)</button>
+  <button class="phase-tab" id="tab-main" onclick="setPhase('main')">Benchtober (31 d)</button>
+</div>
+
+<div class="maxes-card" id="maxes-card"></div>
+<div class="stats" id="stats-row"></div>
+<div class="week-nav" id="week-nav"></div>
+<div class="days-grid" id="days-grid"></div>
+<div class="detail" id="detail"></div>
+</div>
+<script>
+const RAMPUP=[
+{d:"R1",date:"Week 1 · Day 1",name:"Baseline — Bench",type:"strength",warmup:"5 min easy cardio, band pull-aparts 2×15, push-ups 2×10, empty bar 2×10.",exercises:[
+  {id:"r1e1",n:"1",name:"Bench Press",sets:"Build up gradually, then 3 working sets of 5 reps",note:"Add weight each set, keep it comfortable (RPE 6-7). Find your groove.",setDefs:[{label:"Build 1 (5 reps)"},{label:"Build 2 (5 reps)"},{label:"Work 1 (5 reps)"},{label:"Work 2 (5 reps)"},{label:"Work 3 (5 reps)"}]},
+  {id:"r1e2",n:"2",name:"Overhead Press",sets:"Build up, then 3 working sets of 5 reps",note:"Moderate, controlled (RPE 6-7).",setDefs:[{label:"Build 1 (5 reps)"},{label:"Build 2 (5 reps)"},{label:"Work 1 (5 reps)"},{label:"Work 2 (5 reps)"},{label:"Work 3 (5 reps)"}]},
+  {id:"r1e3",n:"3",name:"BB Bent Over Rows",sets:"3 sets of 8 reps",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]}
+],cardio:["10 min easy walk"],recovery:["Protein-rich meal","8+ hrs sleep","Hydrate well"]},
+
+{d:"R2",date:"Week 1 · Day 2",name:"Baseline — Press & Arms",type:"strength",warmup:"5 min cardio, band pull-aparts 2×15, push-ups 2×10.",exercises:[
+  {id:"r2e1",n:"1",name:"Overhead Press",sets:"Build up, then 3 working sets of 5 reps",note:"~RPE 6-7. This becomes a tracked max for the program.",setDefs:[{label:"Build 1 (5 reps)"},{label:"Build 2 (5 reps)"},{label:"Work 1 (5 reps)"},{label:"Work 2 (5 reps)"},{label:"Work 3 (5 reps)"}]},
+  {id:"r2e2",n:"2",name:"Close Grip Bench Press",sets:"3 sets of 6 reps",note:"Keep these moderate, ~RPE 6.",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]},
+  {id:"r2e3",n:"3",name:"Strict Pull Ups or Lat Pulldown",sets:"3 sets of 6-10 reps",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]},
+  {id:"r2e4",n:"4",name:"EZ Bar Skullcrushers",sets:"3 sets of 12 reps",note:"60 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]}
+],cardio:["10 min easy walk"],recovery:["Protein-rich meal","8+ hrs sleep"]},
+
+{d:"R3",date:"Week 1 · Day 3",name:"Baseline — Bench Volume",type:"strength",warmup:"5 min cardio, band pull-aparts 2×15, empty bar 2×10.",exercises:[
+  {id:"r3e1",n:"1",name:"Bench Press",sets:"Build up, then 4 working sets of 5 reps",note:"Moderate and crisp (RPE 6-7). Note what feels strong.",setDefs:[{label:"Build 1 (5 reps)"},{label:"Build 2 (5 reps)"},{label:"Work 1 (5 reps)"},{label:"Work 2 (5 reps)"},{label:"Work 3 (5 reps)"},{label:"Work 4 (5 reps)"}]},
+  {id:"r3e2",n:"2",name:"Incline DB Press",sets:"3 sets of 10 reps",note:"~RPE 7.",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]},
+  {id:"r3e3",n:"3",name:"One Arm DB Rows",sets:"3 sets of 8 reps each arm",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]}
+],cardio:["10 min easy walk"],recovery:["Protein-rich meal","8+ hrs sleep"]},
+
+{d:"R4",date:"Week 2 · Day 1",name:"Load Up — Bench",type:"strength",warmup:"5 min cardio, band pull-aparts 2×15, 2 ramp sets on the bar.",exercises:[
+  {id:"r4e1",n:"1",name:"Bench Press",sets:"Build up, then 3 sets of 3 reps (heavier than week 1)",note:"Push to ~RPE 7-8. You're priming for the test.",setDefs:[{label:"Build 1 (3 reps)"},{label:"Build 2 (3 reps)"},{label:"Work 1 (3 reps)"},{label:"Work 2 (3 reps)"},{label:"Work 3 (3 reps)"}]},
+  {id:"r4e2",n:"2",name:"Overhead Press",sets:"3 sets of 3 reps",note:"~RPE 7-8.",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]},
+  {id:"r4e3",n:"3",name:"BB Bent Over Rows",sets:"3 sets of 6 reps",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]}
+],cardio:["10 min easy walk"],recovery:["Protein-rich meal","8+ hrs sleep"]},
+
+{d:"R5",date:"Week 2 · Day 2",name:"Load Up — Press",type:"strength",warmup:"5 min cardio, band pull-aparts 2×15, 2 ramp sets pressing.",exercises:[
+  {id:"r5e1",n:"1",name:"Overhead Press",sets:"Build up, then 3 sets of 3 reps (heavier)",note:"~RPE 7-8.",setDefs:[{label:"Build 1 (3 reps)"},{label:"Build 2 (3 reps)"},{label:"Work 1 (3 reps)"},{label:"Work 2 (3 reps)"},{label:"Work 3 (3 reps)"}]},
+  {id:"r5e2",n:"2",name:"Bench Press",sets:"3 sets of 3 reps",note:"~RPE 7.",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]},
+  {id:"r5e3",n:"3",name:"Weighted Dips or Close Grip Bench",sets:"3 sets of 6-8 reps",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]}
+],cardio:["10 min easy walk"],recovery:["Protein-rich meal","Extra sleep before test day"]},
+
+{d:"R6",date:"Week 2 · Day 3 — TEST DAY",name:"Rep-Max Test",type:"test",warmup:"Thorough warm up. For EACH lift: 3-4 progressively heavier ramp sets of 2-3 reps before the test set. Rest 3-4 min before each max attempt.",exercises:[
+  {id:"r6e1",n:"1",name:"Bench Press — Rep Max Test",sets:"Work up to ONE hard set of 3-5 reps",note:"Pick a weight you can do for 3-5 clean reps, stopping 1 rep short of failure. Enter weight × reps in the calculator above — the app gives your estimated 1RM.",setDefs:[{label:"Test set"}],isTest:true,lift:"bench"},
+  {id:"r6e2",n:"2",name:"Overhead Press — Rep Max Test",sets:"Work up to ONE hard set of 3-5 reps",note:"Same approach. 3-5 clean reps, 1 in the tank. Log it above.",setDefs:[{label:"Test set"}],isTest:true,lift:"ohp"},
+  {id:"r6e3",n:"3",name:"Close Grip Bench — Rep Max Test (optional)",sets:"Work up to a hard set of 5 reps",note:"Optional — useful if you want a CGB target. 5 clean reps, 1 short of failure.",setDefs:[{label:"Test set"}],isTest:true,lift:"cgb"}
+],cardio:["Easy walk to cool down"],recovery:["Big protein meal — you earned it","Lots of sleep","Enter your maxes up top, then hit Apply to auto-fill all of Benchtober"]}
+];
+
+const DAYS=[
+{d:1,date:"Tue 10-01",name:"For Those About to PRESS",type:"strength",warmup:'5 Jumping Jacks, 3 Claps, 1 Big Ric Flair "Woooo!" Band pull-aparts ×20.',exercises:[
+  {id:"d1e1",n:"1",name:"Bench Press",sets:"4, 6, 8, 6, 4 reps @ 67%",note:"5 total sets, 28 total reps · 2 min rest",setDefs:[{label:"Set 1 (4 reps)",pct:"67%"},{label:"Set 2 (6 reps)",pct:"67%"},{label:"Set 3 (8 reps)",pct:"67%"},{label:"Set 4 (6 reps)",pct:"67%"},{label:"Set 5 (4 reps)",pct:"67%"}]},
+  {id:"d1e2",n:"2",name:"Overhead Press",sets:"4 sets of 4 reps @ 70%",note:"2 min rest",setDefs:[{label:"Set 1",pct:"70%"},{label:"Set 2",pct:"70%"},{label:"Set 3",pct:"70%"},{label:"Set 4",pct:"70%"}]},
+  {n:"3",name:"Superset",sets:"",subs:[
+    {id:"d1e3a",l:"a",name:"Strict Pull Ups",sets:"4 sets of 2-5 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]},
+    {id:"d1e3b",l:"b",name:"EZ Bar Skullcrushers",sets:"4 sets of 10 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]}
+  ]}
+],cardio:["Superset: DB Bicep Curls 4×15 / Cable Triceps Pushdowns 4×15","90 sec rest"],recovery:["30 min Walk","Steak & Eggs","8-9 hrs Sleep"]},
+
+{d:2,date:"Wed 10-02",name:"The SeeSaw",type:"strength",warmup:"Caffeinate and crack the Knuckles. Band pull-aparts ×20.",exercises:[
+  {id:"d2e1",n:"1",name:"Bench Press — Ride the SeeSaw",sets:"5 sets, 40 total reps · 2 min rest",setDefs:[{label:"Set 1 (10 reps)",pct:"50%"},{label:"Set 2 (5 reps)",pct:"65%"},{label:"Set 3 (10 reps)",pct:"55%"},{label:"Set 4 (5 reps)",pct:"70%"},{label:"Set 5 (10 reps)",pct:"60%"}]},
+  {n:"2",name:"Superset",sets:"",subs:[
+    {id:"d2e2a",l:"a",name:"Incline DB Press",sets:"4 sets of 10 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]},
+    {id:"d2e2b",l:"b",name:"DB Rear Laterals",sets:"4 sets of 15 reps",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]}
+  ]},
+  {id:"d2e3",n:"3",name:"DB Flyes",sets:"3 sets of 15 reps",note:"60 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]}
+],cardio:["DB Hammer Curls — 4 sets of 12 reps · 60 sec rest"],recovery:["30 min Walk","Chicken & Dumpling (extra chicken)","8-9 hrs Sleep"]},
+
+{d:3,date:"Thu 10-03",name:"Carry On My Wayward Son",type:"strength",warmup:"Get awake and Loosen Up! Push-ups 2×10.",exercises:[
+  {id:"d3e1",n:"1",name:"Bench Press",sets:"5 sets of 3 reps @ 80%",note:"2½ min rest",setDefs:[{label:"Set 1",pct:"80%"},{label:"Set 2",pct:"80%"},{label:"Set 3",pct:"80%"},{label:"Set 4",pct:"80%"},{label:"Set 5",pct:"80%"}]},
+  {n:"2",name:"Superset",sets:"",subs:[
+    {id:"d3e2a",l:"a",name:"BB Bent Over Rows",sets:"5 sets of 5 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]},
+    {id:"d3e2b",l:"b",name:"Face Pulls",sets:"5 sets of 15 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+  ]},
+  {id:"d3e3",n:"3",name:"Heavy Alternating DB Curls",sets:"4 sets of 8 reps",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]}
+],cardio:["Planned Day Off"],recovery:["Salisbury Steak","Mashed Tators","30 min Walk","8-9 Hrs Sleep"]},
+
+{d:4,date:"Fri 10-04",name:"Business Friday, Never Casual",type:"strength",warmup:"Iron your favorite Polo shirt. It's Business Friday! We dress UP. Band pull-aparts ×20.",exercises:[
+  {id:"d4e1",n:"1",name:"Bench Press",sets:"5 sets of 5 reps @ 75%",note:"2 to 2½ min rest",setDefs:[{label:"Set 1",pct:"75%"},{label:"Set 2",pct:"75%"},{label:"Set 3",pct:"75%"},{label:"Set 4",pct:"75%"},{label:"Set 5",pct:"75%"}]},
+  {id:"d4e2",n:"2",name:"Overhead Press",sets:"5 sets of 5 reps @ 75%",note:"2 to 2½ min rest",setDefs:[{label:"Set 1",pct:"75%"},{label:"Set 2",pct:"75%"},{label:"Set 3",pct:"75%"},{label:"Set 4",pct:"75%"},{label:"Set 5",pct:"75%"}]},
+  {id:"d4e3",n:"3",name:"Close Grip Bench Press",sets:"5 sets of 5 reps @ 70%",note:"2 min rest",setDefs:[{label:"Set 1",pct:"70%"},{label:"Set 2",pct:"70%"},{label:"Set 3",pct:"70%"},{label:"Set 4",pct:"70%"},{label:"Set 5",pct:"70%"}]}
+],cardio:["125 reps Triceps · 125 reps Biceps · 100% at your discretion"],recovery:["Pot Roast (extra Meaty)","30 min Walk","8-9 hrs Sleep"]},
+
+{d:"5-6",date:"Sat-Sun 10-05/06",name:"Active Rest",type:"rest",items:["30 min walk each day","Aim to sleep more","Look back at your past week of pressing","Meal Prep for the Upcoming Week","Watch your favorite Rocky movie","Throw down some protein packed meals","Tell friends how Big your bench is gonna be","Visualize big strong presses for the upcoming week"]},
+
+{d:7,date:"Mon 10-07",name:"The Countdown",type:"strength",warmup:"Get Loose. Light push-ups 3 sets of 10. Band pull-aparts ×20.",exercises:[
+  {id:"d7e1",n:"1",name:"Bench Press",sets:"5 total sets · 2 min rest",note:"5@65% → 4@75% → 3@80% → 2@87% → 1@92%",setDefs:[{label:"Set 1 (5 reps)",pct:"65%"},{label:"Set 2 (4 reps)",pct:"75%"},{label:"Set 3 (3 reps)",pct:"80%"},{label:"Set 4 (2 reps)",pct:"87%"},{label:"Set 5 (1 rep)",pct:"92%"}]},
+  {n:"2",name:"Superset",sets:"",subs:[
+    {id:"d7e2a",l:"a",name:"Overhead Press",sets:"Same ladder as bench above",setDefs:[{label:"Set 1 (5 reps)",pct:"65%"},{label:"Set 2 (4 reps)",pct:"75%"},{label:"Set 3 (3 reps)",pct:"80%"},{label:"Set 4 (2 reps)",pct:"87%"},{label:"Set 5 (1 rep)",pct:"92%"}]},
+    {id:"d7e2b",l:"b",name:"One Arm DB Rows",sets:"5 sets of 5 reps",note:"2 to 2½ min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+  ]}
+],cardio:["Push-ups — 100 total reps in fewest sets possible"],recovery:["Steak & Mashed Potatoes","Big Sleep 8+ hrs","30 min Walk"]},
+
+{d:8,date:"Tue 10-08",name:"Tempo Tuesday",type:"strength",warmup:"Get Loose and memorize the rep tempo. Band pull-aparts ×20.",exercises:[
+  {n:"★",name:"Rep Tempo: 4 sec down · 2 sec pause on chest · Normal press up",sets:""},
+  {id:"d8e1",n:"1",name:"Bench Press (tempo)",sets:"4 sets of 4 reps @ 60%",note:"2 min rest",setDefs:[{label:"Set 1",pct:"60%"},{label:"Set 2",pct:"60%"},{label:"Set 3",pct:"60%"},{label:"Set 4",pct:"60%"}]},
+  {id:"d8e2",n:"2",name:"Close Grip Bench (tempo)",sets:"3 sets of 4 reps @ 55%",note:"2 min rest",setDefs:[{label:"Set 1",pct:"55%"},{label:"Set 2",pct:"55%"},{label:"Set 3",pct:"55%"}]},
+  {id:"d8e3",n:"3",name:"Incline DB Press",sets:"3 sets of 8 reps each",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]}
+],cardio:["DB Lateral Raises — 3 sets of 15 reps · 90 sec rest"],recovery:["All you can eat tacos","8-9 hrs Sleep","30 min Walk"]},
+
+{d:9,date:"Wed 10-09",name:"Chest and Wings",type:"strength",warmup:"Invite 5+ lifting buddies for some CHEST and BACK training. Band pull-aparts ×20.",exercises:[
+  {n:"1",name:"Superset",sets:"",subs:[
+    {id:"d9e1a",l:"a",name:"Bench Press",sets:"5 sets of 5 reps @ 70%",setDefs:[{label:"Set 1",pct:"70%"},{label:"Set 2",pct:"70%"},{label:"Set 3",pct:"70%"},{label:"Set 4",pct:"70%"},{label:"Set 5",pct:"70%"}]},
+    {id:"d9e1b",l:"b",name:"Strict Pull Ups",sets:"5 sets of 2-5 reps",note:"2½ min rest · *Full ROM*",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+  ]},
+  {n:"2",name:"Superset",sets:"",subs:[
+    {id:"d9e2a",l:"a",name:"Weighted Dips",sets:"3 sets of 8 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]},
+    {id:"d9e2b",l:"b",name:"BB Bent Over Row",sets:"3 sets of 10 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]}
+  ]}
+],cardio:["Superset: DB Flyes 3×15 / Face Pulls 3×15","90 sec rest"],recovery:["30 min Walk","Pulled Pork Sandwiches & Mac and Cheese","8+ hrs Sleep"]},
+
+{d:10,date:"Thu 10-10",name:"Press Never Stops",type:"strength",warmup:'Practice "Unbroken Sets" — no pauses or breaks, rep after rep. Band pull-aparts ×20.',exercises:[
+  {id:"d10e1",n:"1",name:'Bench Press "Unbroken"',sets:"6 sets of 6 reps @ 65%",note:"36 total reps · 2 min rest",setDefs:[{label:"Set 1",pct:"65%"},{label:"Set 2",pct:"65%"},{label:"Set 3",pct:"65%"},{label:"Set 4",pct:"65%"},{label:"Set 5",pct:"65%"},{label:"Set 6",pct:"65%"}]},
+  {id:"d10e2",n:"2",name:'Overhead Press "Unbroken"',sets:"5 sets of 8 reps @ 60%",note:"2 min rest",setDefs:[{label:"Set 1",pct:"60%"},{label:"Set 2",pct:"60%"},{label:"Set 3",pct:"60%"},{label:"Set 4",pct:"60%"},{label:"Set 5",pct:"60%"}]}
+],cardio:['EZ Bar Skullcrushers × 50 reps "UNBROKEN"'],recovery:["Salisbury Steak and Gravy","Mashed Tators","30 Min Walk","8+ hrs Sleep"]},
+
+{d:11,date:"Fri 10-11",name:"At Your Discretion",type:"strength",warmup:"It's at your discretion!! Just make sure you are warm and ready.",exercises:[
+  {id:"d11e1",n:"1",name:"Bench Press — choose one option",sets:"",note:"Option 1: 33@70% · Option 2: 26@75% · Option 3: 21@80% · Option 4: 15@85% · Option 5: 10@90%",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"},{label:"Set 6"},{label:"Set 7"}]},
+  {id:"d11e2",n:"2",name:"Weighted Dips",sets:"5 sets of 5-8 reps",note:"Add weight if able · 2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+],cardio:["DB Bicep Curls — 50 reps at your discretion"],recovery:["Meatloaf & Green Beans","30 min Walk","8+ hrs Sleep"]},
+
+{d:"12-13",date:"Sat-Sun 10-12/13",name:"Rest and Relaxation",type:"rest",items:["Find time for a nap","Walk 30 min each day","Meal prep for the new week","Consume lots of protein","Tell friends about Basic Strength Training benefits","Challenge yourself to sleep more each night","Make notes and write down goals for the upcoming week"]},
+
+{d:14,date:"Mon 10-14",name:"70's BIG",type:"strength",warmup:'Watch your favorite scene from "Pumping Iron". Band pull-aparts ×20.',exercises:[
+  {id:"d14e1",n:"1",name:'Bench Press — "Chest like a Barrel"',sets:"8 total sets, 44 reps · 2½ min rest",setDefs:[{label:"Set 1 (6 reps)",pct:"70%"},{label:"Set 2 (6 reps)",pct:"70%"},{label:"Set 3 (4 reps)",pct:"80%"},{label:"Set 4 (4 reps)",pct:"80%"},{label:"Set 5 (2 reps)",pct:"85%"},{label:"Set 6 (2 reps)",pct:"85%"},{label:"Set 7 (10 reps)",pct:"60%"},{label:"Set 8 (10 reps)",pct:"60%"}]},
+  {n:"2",name:'Superset — "Back like a Billboard"',sets:"",subs:[
+    {id:"d14e2a",l:"a",name:"Overhead Press",sets:"5 sets of 2 reps @ 83%",setDefs:[{label:"Set 1",pct:"83%"},{label:"Set 2",pct:"83%"},{label:"Set 3",pct:"83%"},{label:"Set 4",pct:"83%"},{label:"Set 5",pct:"83%"}]},
+    {id:"d14e2b",l:"b",name:"Strict Pull Ups",sets:"5 sets of 2-6 reps",note:"2½ min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+  ]}
+],cardio:["DB Concentration Curls 4×10 each arm + Overhead Triceps Ext 4×12","60 sec rest"],recovery:["Boiled Eggs, Steak, Rice","30 min Walk","8+ hrs Sleep"]},
+
+{d:15,date:"Tue 10-15",name:"Boring Simple Strength",type:"strength",warmup:"Learn about Bill Starr and his 5×5 program. Band pull-aparts ×20.",exercises:[
+  {id:"d15e1",n:"1",name:"Bench Press",sets:"5 reps @ 67%, 70%, 73%, 75%, 77%",note:"2 to 2½ min rest",setDefs:[{label:"Set 1 (5 reps)",pct:"67%"},{label:"Set 2 (5 reps)",pct:"70%"},{label:"Set 3 (5 reps)",pct:"73%"},{label:"Set 4 (5 reps)",pct:"75%"},{label:"Set 5 (5 reps)",pct:"77%"}]},
+  {id:"d15e2",n:"2",name:"Overhead Press",sets:"5 sets of 5 reps — same %'s as bench",setDefs:[{label:"Set 1",pct:"67%"},{label:"Set 2",pct:"70%"},{label:"Set 3",pct:"73%"},{label:"Set 4",pct:"75%"},{label:"Set 5",pct:"77%"}]},
+  {id:"d15e3",n:"3",name:"BB Bent Over Rows",sets:"5 sets of 5 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+],cardio:["Close Grip Bench — 5 sets of 5 reps · 2 min rest"],recovery:["Chicken Casserole (extra helping)","30 min Walk","8-9 hrs Sleep"]},
+
+{d:16,date:"Wed 10-16",name:"Stairway to Strongville",type:"strength",warmup:"Strongville requires chili to be hot. Crank up that fire. Band pull-aparts ×20.",exercises:[
+  {id:"d16e1",n:"1",name:"Bench Press — 10 total sets, 66 total reps",sets:"",note:"Mission 1: 8@50% → 9@55% → 10@60% · 2½ min rest\nMission 2: 6@70% → 7@72% → 8@73% · 2½ min rest\nMission 3: 3@80% → 4@80% → 5@80% → 6@80% · 3 min rest",setDefs:[{label:"M1 Set 1 (8 reps)",pct:"50%"},{label:"M1 Set 2 (9 reps)",pct:"55%"},{label:"M1 Set 3 (10 reps)",pct:"60%"},{label:"M2 Set 1 (6 reps)",pct:"70%"},{label:"M2 Set 2 (7 reps)",pct:"72%"},{label:"M2 Set 3 (8 reps)",pct:"73%"},{label:"M3 Set 1 (3 reps)",pct:"80%"},{label:"M3 Set 2 (4 reps)",pct:"80%"},{label:"M3 Set 3 (5 reps)",pct:"80%"},{label:"M3 Set 4 (6 reps)",pct:"80%"}]}
+],cardio:["Planned Day Off"],recovery:["Hot Chili with extra meat","30 min Walk","8-9 hrs Sleep"]},
+
+{d:17,date:"Thu 10-17",name:"ReGroup and ReLoad",type:"strength",warmup:"Light push-ups 5 sets of 10. Band pull-aparts ×20.",exercises:[
+  {id:"d17e1",n:"1",name:'Bench Press "Unbroken"',sets:"1 set of 10 reps @ 55%",setDefs:[{label:"Set 1 (10 reps)",pct:"55%"}]},
+  {id:"d17e2",n:"2",name:'Close Grip Bench "Unbroken"',sets:"1 set of 8 reps @ 55%",setDefs:[{label:"Set 1 (8 reps)",pct:"55%"}]},
+  {id:"d17e3",n:"3",name:"Incline DB Press",sets:"3 sets of 12 reps",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]},
+  {id:"d17e4",n:"4",name:"Overhead Press",sets:"4 reps @ 65%, 70%, 75%, 75%",note:"2 min rest",setDefs:[{label:"Set 1 (4 reps)",pct:"65%"},{label:"Set 2 (4 reps)",pct:"70%"},{label:"Set 3 (4 reps)",pct:"75%"},{label:"Set 4 (4 reps)",pct:"75%"}]}
+],cardio:["Superset: Cable Pushdowns 5×12 / DB Laterals 5×15 · 75 sec rest"],recovery:["Meat Lover's Pizza (*Eat an extra slice)","30 min Walk","8-9 hrs Sleep"]},
+
+{d:18,date:"Fri 10-18",name:"The Forgotten Reps",type:"strength",warmup:"13× Push-ups · 11× Band Pull-aparts · 9× Dips · 7× Pike Push-ups",exercises:[
+  {id:"d18e1",n:"1",name:"Bench Press",sets:"7 reps @ 60%, 65%, 70%, 72%",note:"2½ min rest",setDefs:[{label:"Set 1 (7 reps)",pct:"60%"},{label:"Set 2 (7 reps)",pct:"65%"},{label:"Set 3 (7 reps)",pct:"70%"},{label:"Set 4 (7 reps)",pct:"72%"}]},
+  {n:"2",name:"Superset",sets:"",subs:[
+    {id:"d18e2a",l:"a",name:"Overhead Press",sets:"9 reps @ 55%, 60%, 65%, 70%",setDefs:[{label:"Set 1 (9 reps)",pct:"55%"},{label:"Set 2 (9 reps)",pct:"60%"},{label:"Set 3 (9 reps)",pct:"65%"},{label:"Set 4 (9 reps)",pct:"70%"}]},
+    {id:"d18e2b",l:"b",name:"BB Bent Over Rows",sets:"4 sets of 9 reps",note:"3 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]}
+  ]},
+  {n:"3",name:"Superset (Tri-set)",sets:"",subs:[
+    {id:"d18e3a",l:"a",name:"DB Rear Laterals",sets:"3×11 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]},
+    {id:"d18e3b",l:"b",name:"DB Flyes",sets:"3×11 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]},
+    {id:"d18e3c",l:"c",name:"DB Hammer Curls",sets:"3×11 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"}]}
+  ]}
+],cardio:["Superset: EZ Bar Skullcrushers 5×13 / DB Bicep Curls 5×13 · 90 sec rest"],recovery:["Sloppy Joes & Tator Tots","30 min Walk","Deep Sleep"]},
+
+{d:"19-20",date:"Sat-Sun 10-19/20",name:"Take it Easy",type:"rest",items:["30 min walk each day","Plenty of protein each day","Get some extra sleep","Meal prep for the new week","Admire the chest — give 'em a flex","Watch some scary movies on AMC","Get excited about the new week ahead","Start visualizing a big bench for the PR Party Oct 30"]},
+
+{d:21,date:"Mon 10-21",name:"The Pressure Cooker",type:"strength",warmup:"Spike the Chili temp. Build up bench sets: 3 reps @ 55%, 67%. Band pull-aparts ×20.",exercises:[
+  {id:"d21e1",n:"1",name:"Bench Press @ 75% — as many sets of 3 in 10 min",sets:"",note:"Record sets: ____",setDefs:[{label:"Set 1",pct:"75%"},{label:"Set 2",pct:"75%"},{label:"Set 3",pct:"75%"},{label:"Set 4",pct:"75%"},{label:"Set 5",pct:"75%"},{label:"Set 6",pct:"75%"},{label:"Set 7",pct:"75%"},{label:"Set 8",pct:"75%"}]},
+  {id:"d21e2",n:"2",name:"Overhead Press @ 75% — same pressure cooker",sets:"",note:"Record sets: ____",setDefs:[{label:"Set 1",pct:"75%"},{label:"Set 2",pct:"75%"},{label:"Set 3",pct:"75%"},{label:"Set 4",pct:"75%"},{label:"Set 5",pct:"75%"},{label:"Set 6",pct:"75%"},{label:"Set 7",pct:"75%"},{label:"Set 8",pct:"75%"}]},
+  {id:"d21e3",n:"3",name:"Strict Pull Ups",sets:"5 sets of 3-6 reps",note:"2 min rest · Full ROM",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+],cardio:["Superset: Cable Pushdowns 4×20 / Hammer Curls 4×10 / Close Grip Pushups 4×10 · 2 min rest"],recovery:["Steak and Eggs (extra side of steak)","30 min Walk","Sleep like a Bear!!"]},
+
+{d:22,date:"Tue 10-22",name:"Hard Hat and Work Boots",type:"strength",warmup:"Pack the work cooler. Fill the thermos! It's a work day. Band pull-aparts ×20.",exercises:[
+  {n:"1",name:"Superset",sets:"",subs:[
+    {id:"d22e1a",l:"a",name:"Bench Press",sets:"7 sets of 3 reps @ 70%",setDefs:[{label:"Set 1",pct:"70%"},{label:"Set 2",pct:"70%"},{label:"Set 3",pct:"70%"},{label:"Set 4",pct:"70%"},{label:"Set 5",pct:"70%"},{label:"Set 6",pct:"70%"},{label:"Set 7",pct:"70%"}]},
+    {id:"d22e1b",l:"b",name:"Incline DB Press",sets:"7 sets of 6 reps (light to med)",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"},{label:"Set 6"},{label:"Set 7"}]}
+  ]},
+  {id:"d22e2",n:"2",name:"Overhead Press",sets:"5 sets of 3 reps @ 70-75%",note:"90 sec rest",setDefs:[{label:"Set 1",pct:"70-75%"},{label:"Set 2",pct:"70-75%"},{label:"Set 3",pct:"70-75%"},{label:"Set 4",pct:"70-75%"},{label:"Set 5",pct:"70-75%"}]},
+  {n:"3",name:"Superset",sets:"",subs:[
+    {id:"d22e3a",l:"a",name:"Overhead Triceps Ext",sets:"4 sets of 12 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]},
+    {id:"d22e3b",l:"b",name:"DB Concentration Curls",sets:"4 sets of 10 reps each arm",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]},
+    {id:"d22e3c",l:"c",name:"DB Lateral Raises",sets:"4 sets of 20 reps",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]}
+  ]}
+],cardio:["Weighted Dips — 6 total sets of 8 reps · 90 sec rest"],recovery:["Pot Roast (*extra Meaty)","30 min Walk","Heavy Sleep"]},
+
+{d:23,date:"Wed 10-23",name:"The Pressure Cooker II",type:"strength",warmup:"Stare ADVERSITY in the face. Build up bench sets: 3 reps @ 65%, 75%. Band pull-aparts ×20.",exercises:[
+  {id:"d23e1",n:"1",name:"Bench Press @ 80% — as many sets of 2 in 10 min",sets:"",note:"Record sets: ____",setDefs:[{label:"Set 1",pct:"80%"},{label:"Set 2",pct:"80%"},{label:"Set 3",pct:"80%"},{label:"Set 4",pct:"80%"},{label:"Set 5",pct:"80%"},{label:"Set 6",pct:"80%"},{label:"Set 7",pct:"80%"},{label:"Set 8",pct:"80%"}]},
+  {id:"d23e2",n:"2",name:"Close Grip Bench @ 75% — same format",sets:"",note:"Record sets: ____",setDefs:[{label:"Set 1",pct:"75%"},{label:"Set 2",pct:"75%"},{label:"Set 3",pct:"75%"},{label:"Set 4",pct:"75%"},{label:"Set 5",pct:"75%"},{label:"Set 6",pct:"75%"},{label:"Set 7",pct:"75%"},{label:"Set 8",pct:"75%"}]},
+  {id:"d23e3",n:"3",name:"BB Bent Over Rows",sets:"5 sets of 5 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+],cardio:["Superset: DB Laterals 4×15 / Skullcrushers 4×15 / Rear Laterals 4×15 · 2 min rest"],recovery:["Fried Chicken & Mashed Tators","30 min Walk","Deep Heavy Sleep"]},
+
+{d:24,date:"Thu 10-24",name:"Cool Down the Biscuits",type:"strength",warmup:"Push-ups — 3×10 reps · 1 min rest. Band pull-aparts ×20.",exercises:[
+  {n:"1",name:"Superset",sets:"",subs:[
+    {id:"d24e1a",l:"a",name:"Bench Press",sets:"5 sets of 5 reps @ 65%",setDefs:[{label:"Set 1",pct:"65%"},{label:"Set 2",pct:"65%"},{label:"Set 3",pct:"65%"},{label:"Set 4",pct:"65%"},{label:"Set 5",pct:"65%"}]},
+    {id:"d24e1b",l:"b",name:"DB Flyes",sets:"5 sets of 12 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+  ]},
+  {n:"2",name:"Superset",sets:"",subs:[
+    {id:"d24e2a",l:"a",name:"Overhead Press",sets:"4 sets of 6 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]},
+    {id:"d24e2b",l:"b",name:"Face Pulls",sets:"4 sets of 15 reps",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]}
+  ]}
+],cardio:["DB Bicep Curls — 3×12 reps · 1 min rest"],recovery:["Sloppy Joes and Tator Tots","30 min Walk","8+ hrs Sleep"]},
+
+{d:25,date:"Fri 10-25",name:"The Dress Rehearsal",type:"strength",warmup:"Caffeinate Up!! Crack the Knuckles. Chili Temp on lava level. Band pull-aparts ×20.",exercises:[
+  {id:"d25e1",n:"1",name:"Bench Press",sets:"10 total sets, 24 total reps · 2½ to 3½ min rest",setDefs:[{label:"S1 — 5 reps",pct:"60%"},{label:"S2 — 4 reps",pct:"70%"},{label:"S3 — 3 reps",pct:"80%"},{label:"S4 — 2 reps",pct:"85%"},{label:"S5 — 1 rep",pct:"90%"},{label:"S6 — 3 reps",pct:"82%"},{label:"S7 — 2 reps",pct:"88%"},{label:"S8 — 1 rep",pct:"93%"},{label:"S9 — 2 reps",pct:"90%"},{label:"S10 — 1 rep",pct:"95%"}]},
+  {id:"d25e2",n:"2",name:"Overhead Press",sets:"5 sets of 5 reps @ 70%",note:"2 min rest",setDefs:[{label:"Set 1",pct:"70%"},{label:"Set 2",pct:"70%"},{label:"Set 3",pct:"70%"},{label:"Set 4",pct:"70%"},{label:"Set 5",pct:"70%"}]},
+  {id:"d25e3",n:"3",name:"Strict Pull Ups",sets:"4 sets of 3-6 reps",note:"2 min rest · Full ROM",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]}
+],cardio:["Superset: Close Grip Bench 4×10 / DB Bicep Curls 4×10 · 90 sec rest"],recovery:["Extra Meaty Chili!!","30 min Walk","Sleep Deep and Heavy"]},
+
+{d:"26-27",date:"Sat-Sun 10-26/27",name:"Calm and Cozy",type:"rest",items:["Reminisce on all the pressing you have completed","Start inviting folks to your upcoming PR Party","Get out and walk 30 min each day","Throw something on the grill","Invest in Sleep — get a good nap","Flex the chest often, show folks the results","Write down goals for the new week"]},
+
+{d:28,date:"Mon 10-28",name:"Snappy Strong",type:"strength",warmup:"Tell yourself you're gonna move the weights Fast and SNAPPY today. *Session: 30-35 min. Band pull-aparts ×20.",exercises:[
+  {n:"1",name:"Superset",sets:"",subs:[
+    {id:"d28e1a",l:"a",name:"Snappy Bench Press",sets:"5 sets of 2 reps @ 70%",setDefs:[{label:"Set 1",pct:"70%"},{label:"Set 2",pct:"70%"},{label:"Set 3",pct:"70%"},{label:"Set 4",pct:"70%"},{label:"Set 5",pct:"70%"}]},
+    {id:"d28e1b",l:"b",name:"Strict Pull Ups",sets:"5 sets of 3-6 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+  ]},
+  {n:"2",name:"Superset",sets:"",subs:[
+    {id:"d28e2a",l:"a",name:'Overhead Press "Be Snappy"',sets:"5 sets of 3 reps @ 70%",setDefs:[{label:"Set 1",pct:"70%"},{label:"Set 2",pct:"70%"},{label:"Set 3",pct:"70%"},{label:"Set 4",pct:"70%"},{label:"Set 5",pct:"70%"}]},
+    {id:"d28e2b",l:"b",name:"1-Arm DB Rows",sets:"5 sets of 5 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+  ]}
+],cardio:["Superset: EZ Bar Skullcrushers 3×15 / Hammer Curls 3×10 · 60 sec rest"],recovery:["Meatloaf, Green Beans, Mac & Cheese","30 min Walk","Heavy Sleep"]},
+
+{d:29,date:"Tue 10-29",name:"Trickle Charger",type:"strength",warmup:"10 Push-ups · Crack Knuckles · Band pull-aparts ×15 · *Repeat as needed · Session: 20-25 min",exercises:[
+  {id:"d29e1",n:"1",name:"Bench Press",sets:"3 sets of 5 reps @ 55%",note:"90 sec rest · Move the weight fast",setDefs:[{label:"Set 1",pct:"55%"},{label:"Set 2",pct:"55%"},{label:"Set 3",pct:"55%"}]},
+  {n:"2",name:"Superset",sets:"",subs:[
+    {id:"d29e2a",l:"a",name:"DB Laterals",sets:"4×10 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]},
+    {id:"d29e2b",l:"b",name:"DB Flyes",sets:"4×10 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]},
+    {id:"d29e2c",l:"c",name:"Cable Triceps Pushdowns",sets:"4×12 reps",note:"90 sec rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]}
+  ]}
+],cardio:["Do the warm up as a cool down"],recovery:["Thick Steak & Baked Tators","30 min Walk","High Level Sleep"]},
+
+{d:30,date:"Wed 10-30",name:"THE PR PARTY",type:"pr",warmup:'Kick the door down. Chili so hot your nickname is "Dragon Breath". Band pull-aparts ×20.',exercises:[
+  {id:"d30e1",n:"1",name:"Bench Press — Ramp to a PR!",sets:"",note:"Ramp Up: 5@55% → 3@65% → 2@75% → 1@85% → 1@93% → 1@100% · 2 to 2½ min rest\nPR Attempts: 1@103% → 105% → 108%... climb 2-3% each set · 2½ to 3 min rest. Use a spotter!",setDefs:[{label:"Ramp 1 (5 reps)",pct:"55%"},{label:"Ramp 2 (3 reps)",pct:"65%"},{label:"Ramp 3 (2 reps)",pct:"75%"},{label:"Ramp 4 (1 rep)",pct:"85%"},{label:"Ramp 5 (1 rep)",pct:"93%"},{label:"Ramp 6 (1 rep)",pct:"100%"},{label:"PR Attempt 1",pct:"103%"},{label:"PR Attempt 2",pct:"105%"},{label:"PR Attempt 3",pct:"108%"},{label:"PR Attempt 4",pct:"110%+"}]}
+],cardio:["Planned Day Off!! :)"],recovery:["Spaghetti and Meatballs","Favorite Halloween Candy","Big Sleep"]},
+
+{d:31,date:"Thu 10-31",name:"The Hangover",type:"strength",warmup:"Snack on some Halloween Candy. Band pull-aparts ×20.",exercises:[
+  {id:"d31e1",n:"1",name:"Bench Press",sets:"5 sets of 5 reps @ 60-65%",note:"90 sec rest",setDefs:[{label:"Set 1",pct:"60-65%"},{label:"Set 2",pct:"60-65%"},{label:"Set 3",pct:"60-65%"},{label:"Set 4",pct:"60-65%"},{label:"Set 5",pct:"60-65%"}]},
+  {n:"2",name:"Superset",sets:"",subs:[
+    {id:"d31e2a",l:"a",name:"Close Grip Bench Press",sets:"5 sets of 10 reps",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]},
+    {id:"d31e2b",l:"b",name:"BB Bent Over Rows",sets:"5 sets of 10 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"},{label:"Set 5"}]}
+  ]},
+  {n:"3",name:"Superset",sets:"",subs:[
+    {id:"d31e3a",l:"a",name:"Overhead Press",sets:"4 sets of 3 reps @ 70-75%",setDefs:[{label:"Set 1",pct:"70-75%"},{label:"Set 2",pct:"70-75%"},{label:"Set 3",pct:"70-75%"},{label:"Set 4",pct:"70-75%"}]},
+    {id:"d31e3b",l:"b",name:"Strict Pull Ups",sets:"4 sets of 3-6 reps",note:"2 min rest",setDefs:[{label:"Set 1"},{label:"Set 2"},{label:"Set 3"},{label:"Set 4"}]}
+  ]}
+],cardio:["Triceps 100 reps · Biceps 100 reps · Lateral Raises 100 reps · *100% at your discretion"],recovery:["Eggs, Bacon, Biscuits & Gravy","30 min Walk","Invest in Sleep"]}
+];
+
+
+const STORE_KEY='bench24v1';
+let store={},completed=new Set(),unit='lbs',activeDay=1,activeWeek=0,phase='rampup';
+let maxes={bench:'',ohp:'',cgb:''};
+let testCalc={bench:{w:'',r:''},ohp:{w:'',r:''},cgb:{w:'',r:''}};
+
+function load(){try{const s=localStorage.getItem(STORE_KEY);if(s){const p=JSON.parse(s);store=p.store||{};completed=new Set(p.completed||[]);unit=p.unit||'lbs';maxes=p.maxes||{bench:'',ohp:'',cgb:''};testCalc=p.testCalc||{bench:{w:'',r:''},ohp:{w:'',r:''},cgb:{w:'',r:''}};phase=p.phase||'rampup';if(p.activeDay)activeDay=p.activeDay;}}catch(e){}}
+function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify({store,completed:[...completed],unit,maxes,testCalc,phase,activeDay}));}catch(e){}}
+
+function activeList(){return phase==='rampup'?RAMPUP:DAYS;}
+function findDay(id){return activeList().find(d=>d.d==id);}
+function getWeek(n){if(n<=6)return 1;if(n<=13)return 2;if(n<=20)return 3;if(n<=27)return 4;return 5;}
+function epley1RM(w,r){w=parseFloat(w);r=parseFloat(r);if(!w||!r)return 0;if(r==1)return w;return w*(1+r/30);}
+
+function detectLift(name){
+  const n=name.toLowerCase();
+  if(n.includes('close grip bench'))return 'cgb';
+  if(n.includes('overhead press')||n.includes('ohp'))return 'ohp';
+  if(n.includes('bench press')||n.includes('bench'))return 'bench';
+  return null;
+}
+
+function parsePct(pctStr){if(!pctStr)return null;const m=pctStr.match(/(\d+(?:\.\d+)?)/g);if(!m)return null;if(m.length>=2)return (parseFloat(m[0])+parseFloat(m[1]))/2/100;return parseFloat(m[0])/100;}
+function roundWeight(w){if(unit==='lbs')return Math.round(w/5)*5;return Math.round(w/2.5)*2.5;}
+function targetFor(lift,pctStr){if(!lift)return null;const max=parseFloat(maxes[lift]);if(!max)return null;const pct=parsePct(pctStr);if(!pct)return null;return roundWeight(max*pct);}
+
+function setUnit(u){unit=u;document.getElementById('btn-lbs').className=u==='lbs'?'active':'';document.getElementById('btn-kg').className=u==='kg'?'active':'';save();renderMaxes();renderDetail();}
+
+function setPhase(p){phase=p;document.getElementById('tab-rampup').className='phase-tab'+(p==='rampup'?' active':'');document.getElementById('tab-main').className='phase-tab'+(p==='main'?' active':'');activeWeek=0;activeDay=activeList()[0].d;save();renderAll();}
+
+function updateStats(){
+  const c=completed.size;
+  document.getElementById('done-count').textContent=c+' / 31 days';
+  document.getElementById('prog-fill').style.width=Math.round(c/31*100)+'%';
+  const sr=document.getElementById('stats-row');
+  if(phase==='rampup'){
+    const rdone=RAMPUP.filter(d=>completed.has('done_'+d.d)).length;
+    sr.innerHTML=`<div class="stat"><div class="stat-val">${rdone}</div><div class="stat-label">ramp days done</div></div><div class="stat"><div class="stat-val">6</div><div class="stat-label">total sessions</div></div><div class="stat"><div class="stat-val">2</div><div class="stat-label">weeks</div></div>`;
+  } else {
+    sr.innerHTML=`<div class="stat"><div class="stat-val">${c}</div><div class="stat-label">completed</div></div><div class="stat"><div class="stat-val">22</div><div class="stat-label">lifting days</div></div><div class="stat"><div class="stat-val">9</div><div class="stat-label">rest days</div></div>`;
+  }
+}
+
+function renderMaxes(){
+  const card=document.getElementById('maxes-card');
+  const e1=Math.round(epley1RM(testCalc.bench.w,testCalc.bench.r));
+  const e2=Math.round(epley1RM(testCalc.ohp.w,testCalc.ohp.r));
+  const e3=Math.round(epley1RM(testCalc.cgb.w,testCalc.cgb.r));
+  card.innerHTML=`
+    <div class="maxes-title">&#9889; Your Maxes</div>
+    <div class="maxes-sub">Enter your estimated 1-rep max for each lift. Benchtober percentages auto-fill from these. Use the calculator below to convert a rep-max test into a 1RM.</div>
+    <div class="max-row"><span class="max-label">Bench Press</span><input class="max-input" type="number" inputmode="decimal" placeholder="0" value="${maxes.bench}" oninput="setMax('bench',this.value)"><span class="max-unit">${unit}</span></div>
+    <div class="max-row"><span class="max-label">Overhead Press</span><input class="max-input" type="number" inputmode="decimal" placeholder="0" value="${maxes.ohp}" oninput="setMax('ohp',this.value)"><span class="max-unit">${unit}</span></div>
+    <div class="max-row"><span class="max-label">Close Grip Bench</span><input class="max-input" type="number" inputmode="decimal" placeholder="0" value="${maxes.cgb}" oninput="setMax('cgb',this.value)"><span class="max-unit">${unit}</span></div>
+    <div class="calc-box">
+      <div class="calc-title">Rep-Max → 1RM calculator (Epley)</div>
+      <div class="calc-row"><span class="calc-label">Bench</span><input class="calc-input" type="number" inputmode="decimal" placeholder="wt" value="${testCalc.bench.w}" oninput="setCalc('bench','w',this.value)"><span class="calc-x">×</span><input class="calc-input" type="number" inputmode="numeric" placeholder="reps" value="${testCalc.bench.r}" oninput="setCalc('bench','r',this.value)"><span class="calc-result">${e1?'≈ '+e1+' '+unit:''}</span></div>
+      <div class="calc-row"><span class="calc-label">Overhead Press</span><input class="calc-input" type="number" inputmode="decimal" placeholder="wt" value="${testCalc.ohp.w}" oninput="setCalc('ohp','w',this.value)"><span class="calc-x">×</span><input class="calc-input" type="number" inputmode="numeric" placeholder="reps" value="${testCalc.ohp.r}" oninput="setCalc('ohp','r',this.value)"><span class="calc-result">${e2?'≈ '+e2+' '+unit:''}</span></div>
+      <div class="calc-row"><span class="calc-label">Close Grip</span><input class="calc-input" type="number" inputmode="decimal" placeholder="wt" value="${testCalc.cgb.w}" oninput="setCalc('cgb','w',this.value)"><span class="calc-x">×</span><input class="calc-input" type="number" inputmode="numeric" placeholder="reps" value="${testCalc.cgb.r}" oninput="setCalc('cgb','r',this.value)"><span class="calc-result">${e3?'≈ '+e3+' '+unit:''}</span></div>
+      <button class="apply-btn secondary" onclick="useCalcMaxes()">Use calculated 1RMs as my maxes ↑</button>
+    </div>
+    <button class="apply-btn" onclick="applyMaxes()">Apply maxes → auto-fill Benchtober weights</button>
+    <div class="applied-flash" id="applied-flash">&#10003; Done! Target weights filled across all Benchtober days.</div>
+  `;
+}
+
+let maxTimer={};
+function setMax(lift,val){maxes[lift]=val;clearTimeout(maxTimer[lift]);maxTimer[lift]=setTimeout(()=>{save();},400);}
+function setCalc(lift,field,val){testCalc[lift][field]=val;clearTimeout(maxTimer['c'+lift+field]);maxTimer['c'+lift+field]=setTimeout(()=>{save();renderMaxes();},400);}
+function useCalcMaxes(){['bench','ohp','cgb'].forEach(l=>{const e=Math.round(epley1RM(testCalc[l].w,testCalc[l].r));if(e)maxes[l]=e;});save();renderMaxes();}
+function applyMaxes(){save();if(phase!=='main'){setPhase('main');}else{renderDetail();}const fl=document.getElementById('applied-flash');if(fl){fl.classList.add('show');setTimeout(()=>fl.classList.remove('show'),2500);}}
+
+function renderPhaseNav(){
+  const nav=document.getElementById('week-nav');
+  if(phase==='rampup'){nav.innerHTML='';nav.style.display='none';return;}
+  nav.style.display='flex';nav.innerHTML='';
+  ['All','Week 1','Week 2','Week 3','Week 4','Week 5'].forEach((w,i)=>{const b=document.createElement('button');b.className='week-btn'+(activeWeek===i?' active':'');b.textContent=w;b.onclick=()=>{activeWeek=i;renderPhaseNav();renderGrid();};nav.appendChild(b);});
+}
+
+function renderGrid(){
+  const grid=document.getElementById('days-grid');grid.innerHTML='';
+  let list=activeList();
+  if(phase==='main'&&activeWeek!==0)list=list.filter(d=>getWeek(parseInt(d.d))===activeWeek);
+  list.forEach(day=>{
+    const dn=day.d;
+    const pill=document.createElement('div');
+    const compKey=phase==='rampup'?'done_'+dn:dn;
+    const isComp=completed.has(compKey);
+    pill.className='day-pill'+(isComp?' completed':'')+(dn==activeDay?' active':'');
+    let badge='badge-strength',label='Strength';
+    if(day.type==='pr'){badge='badge-pr';label='PR Day';}
+    else if(day.type==='rest'){badge='badge-rest';label='Rest';}
+    else if(day.type==='test'){badge='badge-test';label='Test';}
+    const dlabel=phase==='rampup'?day.d.replace('R','Day '):'Day '+day.d;
+    pill.innerHTML=`<div class="day-num">${dlabel}</div><div class="day-name">${day.name}</div><div class="day-badge ${badge}">${label}</div>`;
+    pill.onclick=()=>{activeDay=dn;save();renderGrid();renderDetail();window.scrollTo({top:document.getElementById('detail').offsetTop-10,behavior:'smooth'});};
+    grid.appendChild(pill);
+  });
+}
+
+function wKey(id,i){return `${id}_s${i}_${unit}`;}
+function nKey(dn){return `notes_${dn}`;}
+let saveTimers={};
+function schedSave(el,id,i){const k=id+'_'+i;clearTimeout(saveTimers[k]);saveTimers[k]=setTimeout(()=>{store[wKey(id,i)]=el.value;save();const fl=document.getElementById('fl_'+id+'_'+i);if(fl){fl.classList.add('show');setTimeout(()=>fl.classList.remove('show'),1200);}},500);}
+let nTimer=null;
+function schedNotes(dn,val){clearTimeout(nTimer);nTimer=setTimeout(()=>{store[nKey(dn)]=val;save();},500);}
+
+function buildSetLog(id,setDefs,lift){
+  let rows=setDefs.map((s,i)=>{
+    const saved=store[wKey(id,i)]||'';
+    const pctPill=s.pct?`<span class="set-pct">${s.pct}</span>`:'';
+    const target=phase==='main'?targetFor(lift,s.pct):null;
+    const targetTag=target?`<span class="set-target">→ ${target}</span>`:'';
+    const cls=target&&!saved?'set-input has-target':'set-input';
+    const ph=target?target:'—';
+    return `<div class="set-row"><span class="set-label">${s.label}</span>${pctPill}${targetTag}<input class="${cls}" type="number" min="0" step="2.5" placeholder="${ph}" value="${saved}" oninput="schedSave(this,'${id}',${i})" inputmode="decimal"><span class="set-unit">${unit}</span><span class="saved-flash" id="fl_${id}_${i}">&#10003;</span></div>`;
+  }).join('');
+  return `<div class="wlog"><div class="wlog-title">&#9646; Weight used${lift&&phase==='main'?' <span style="color:#4ade80;font-weight:400">· green = target from your max</span>':''}</div><div class="set-rows">${rows}</div></div>`;
+}
+
+function renderEx(ex){
+  if(ex.n==='★') return `<div style="font-size:12px;font-weight:600;color:#a855f7;padding:6px 0 2px 0;border-top:1px solid #2a2a2a;margin-top:4px">${ex.name}</div>`;
+  const lift=ex.lift||detectLift(ex.name);
+  let html=`<div class="exercise"><div class="ex-row"><span class="ex-num">${ex.n}.</span><div style="flex:1"><div class="ex-name">${ex.name}${ex.subs?'<span class="ss-tag">Superset</span>':''}</div>`;
+  if(ex.sets) html+=`<div class="ex-detail">${ex.sets}</div>`;
+  if(ex.note) html+=`<div class="ex-detail">${ex.note.replace(/\n/g,'<br>')}</div>`;
+  if(ex.id&&ex.setDefs) html+=buildSetLog(ex.id,ex.setDefs,lift);
+  if(ex.subs) ex.subs.forEach(s=>{const sLift=s.lift||detectLift(s.name);html+=`<div class="sub-ex"><div class="ex-row"><span class="sub-l">${s.l}.</span><div style="flex:1"><div class="ex-name" style="font-size:13px">${s.name}</div><div class="ex-detail">${s.sets}</div>${s.note?`<div class="ex-detail">${s.note}</div>`:''}${s.id&&s.setDefs?buildSetLog(s.id,s.setDefs,sLift):''}</div></div></div>`;});
+  html+=`</div></div></div>`;
+  return html;
+}
+
+function renderDetail(){
+  const day=findDay(activeDay);if(!day)return;
+  const dn=day.d;
+  const compKey=phase==='rampup'?'done_'+dn:dn;
+  const isComp=completed.has(compKey);
+  const savedNotes=store[nKey(dn)]||'';
+  const dlabel=phase==='rampup'?day.date:'Day '+day.d;
+  let html=`<div class="dh"><div><div class="dh-day">${dlabel}</div><div class="dh-name">"${day.name}"</div>${phase==='main'?`<div class="dh-date">${day.date}</div>`:''}</div><button class="done-btn${isComp?' done':''}" onclick="toggleDone('${dn}')">${isComp?'&#10003; Done':'Mark done'}</button></div>`;
+  if(day.type==='rest'){
+    html+=`<div class="section"><div class="sec-title">&#9675; Active rest</div><div style="background:#222;border-radius:10px;padding:10px 12px;border:1px solid #2a2a2a">${day.items.map(it=>`<div class="rest-item"><span class="rest-bullet">&#8226;</span><span>${it}</span></div>`).join('')}</div></div>`;
+  } else {
+    if(day.type==='test') html+=`<div class="test-note">&#128202; Test Day — work up to a hard 3-5 rep set on each lift, then enter weight × reps in the calculator at the top. Your estimated 1RMs become your Benchtober maxes.</div>`;
+    if(day.type==='pr') html+=`<div class="pr-note">&#127881; PR Day — go for it! Ramp up and set a new bench record. Use a spotter.</div>`;
+    if(day.warmup) html+=`<div class="section"><div class="sec-title">&#9650; Warm up</div><div class="warmup-box">${day.warmup}</div></div>`;
+    if(day.exercises&&day.exercises.length){html+=`<div class="section"><div class="sec-title">&#9632; ${day.type==='test'?'Test Lifts':'Strength'}</div>`;day.exercises.forEach(ex=>{html+=renderEx(ex);});html+=`</div>`;}
+    if(day.cardio||day.recovery){html+=`<div class="two-col">`;if(day.cardio) html+=`<div class="col-box"><div class="col-title">Cardio / Arms</div>${day.cardio.map(l=>`<div class="col-line">${l}</div>`).join('')}</div>`;if(day.recovery) html+=`<div class="col-box"><div class="col-title">Recovery</div>${day.recovery.map(l=>`<div class="col-line">${l}</div>`).join('')}</div>`;html+=`</div>`;}
+  }
+  html+=`<div style="margin-top:14px;border-top:1px solid #2a2a2a;padding-top:12px"><div class="notes-label">Session notes</div><textarea class="notes-area" placeholder="How did it feel? PRs? Notes on weight, reps, the session..." oninput="schedNotes('${dn}',this.value)">${savedNotes}</textarea></div>`;
+  document.getElementById('detail').innerHTML=html;
+}
+
+window.toggleDone=function(dn){const compKey=phase==='rampup'?'done_'+dn:dn;if(completed.has(compKey))completed.delete(compKey);else completed.add(compKey);save();updateStats();renderGrid();renderDetail();};
+
+function renderAll(){document.getElementById('tab-rampup').className='phase-tab'+(phase==='rampup'?' active':'');document.getElementById('tab-main').className='phase-tab'+(phase==='main'?' active':'');updateStats();renderMaxes();renderPhaseNav();renderGrid();renderDetail();}
+
+load();
+if(!findDay(activeDay)){activeDay=activeList()[0].d;}
+document.getElementById('btn-lbs').className=unit==='lbs'?'active':'';
+document.getElementById('btn-kg').className=unit==='kg'?'active':'';
+renderAll();
+</script>
+</body>
+</html>
